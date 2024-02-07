@@ -5,9 +5,9 @@ import datetime
 import pytz  # Import pytz module for time zone handling
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,7 +16,7 @@ load_dotenv()
 username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 restaurant = os.getenv("RESTAURANT")
-number_of_seats = os.getenv("SEATS")
+guests = os.getenv("GUESTS")
 preferred_time = os.getenv("TIME")
 
 # Define restaurant URLs
@@ -80,6 +80,20 @@ def make_reservation():
 
         # Wait for the new HTML to be loaded after selecting the date
         WebDriverWait(driver, 10).until(EC.staleness_of(date_td))
+
+       # Find the dropdown element by its ID
+        dropdown = Select(driver.find_element(By.ID,"noOfGuests"))
+
+        # Select the option corresponding to the value set in the environment variable
+        dropdown.select_by_value(guests)
+
+        # Wait for the progress indicator to disappear
+        WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.CLASS_NAME, "progress-indicator")))
+
+        # Find and click the button
+        find_table_button = driver.find_element(By.XPATH, "//button[@type='submit']")
+        driver.execute_script("arguments[0].scrollIntoView(true);", find_table_button)  # Scroll to the button
+        find_table_button.click()
 
         # Submit the reservation form
         #submit_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Submit')]")  # Adjust the locator as needed
