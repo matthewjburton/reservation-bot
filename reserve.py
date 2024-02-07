@@ -247,7 +247,7 @@ def main():
         current_time = datetime.datetime.now().time()
 
         # Check if current time is midnight
-        if current_time.hour == 14 and current_time.minute == 37:
+        if current_time.hour == 0 and current_time.minute == 0:
             
             # Attempt to make a reservation
             reservation_made = make_reservation()
