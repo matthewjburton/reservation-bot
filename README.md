@@ -1,6 +1,6 @@
-# prime-reservation
+# Reservation Bot
 
-Place a reservation for High Point University's steakhouse Prime
+Place a reservation for High Point University's fine dining restaurants
 
 ## Requirements
 
@@ -13,7 +13,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-Modify the options in the .env file to utilize your credentials and preferrences
+Create a .env file to manage the configuration for youre reservation
 
 ```py
 USERNAME=username       # Your HPU username
