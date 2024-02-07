@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import time
 import datetime
 import pytz  # Import pytz module for time zone handling
-import schedule
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 
+# LOAD INPUT
 # Load environment variables from .env file
 load_dotenv()
 
@@ -22,19 +23,67 @@ restaurant = os.getenv("RESTAURANT")
 guests = os.getenv("GUESTS")
 preferred_time = os.getenv("TIME")
 
+
+# INPUT VALIDATION
+# Phone
+# Truncate the phone number if it's longer than 10 characters
+if len(phone) > 10:
+    phone = phone[:10]
+
+# Restaurant
+# Stop the program if the restaurant is not in the list of avaiable restaurants
+if restaurant not in ('Prime', 'Alo', 'Kazoku'):
+    print("Restaurant not found.")
+    # Terminate the program
+    sys.exit()
+
+# Guests
+# Stop the program if the number of guests is less than 1
+if int(guests) < 1:
+    print("Can't make a reservation for less than one guest.")
+    # Terminate the program
+    sys.exit()
+
+# Define maximum number of guests for each restaurant
+max_guests = {
+    'Prime': 6,
+    'Alo': 4,
+    'Kazoku': 10
+}
+
+# Clamp the number of guests
+guests = min(int(guests), max_guests.get(restaurant))
+guests = str(guests)
+
+# Time
+# Define the minimum and maximum times as datetime objects
+min_time = datetime.datetime.strptime("16:30", "%H:%M")
+max_time = datetime.datetime.strptime("20:30", "%H:%M")
+
+# Convert the preferred_time to a datetime object
+preferred_time_dt = datetime.datetime.strptime(preferred_time, "%H:%M")
+
+# Check if the preferred time falls within the available range
+if preferred_time_dt < min_time:
+    preferred_time_dt = min_time
+if preferred_time_dt > max_time:
+    preferred_time_dt = max_time
+
+# Convert the preferred_time back to string format
+preferred_time = preferred_time_dt.strftime("%H:%M")
+
+
+# URL
 # Define restaurant URLs
 restaurant_urls = {
-    'Prime': os.getenv("PRIME_RESERVATION_URL"),
-    'Alo': os.getenv("ALO_RESERVATION_URL"),
-    'Kazoku': os.getenv("KAZOKU_RESERVATION_URL"),
+    'Prime' : 'https://finedining.highpoint.edu/1924-Prime/reservation',
+    'Alo' : 'https://finedining.highpoint.edu/alo/reservation',
+    'Kazoku' : 'https://finedining.highpoint.edu/kazoku/reservation',
 }
 url = restaurant_urls.get(restaurant)
 
-def make_reservation():
-    if not url:
-        print("Restaurant URL not found.")
-        return None
 
+def make_reservation():
     # Create a new instance of the Chrome driver
     driver = webdriver.Chrome()
 
@@ -148,6 +197,8 @@ def make_reservation():
             closest_button.click()
         else:
             print("No suitable time found.")
+            # Terminate the program
+            sys.exit()
         
 
         # PHONE
@@ -166,7 +217,7 @@ def make_reservation():
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
-        #complete_reservation_button.click()
+        complete_reservation_button.click()
         
         print("Reservation successful!")
         return True
@@ -180,18 +231,23 @@ def make_reservation():
         driver.quit()
 
 def main():
+    # The maximum number of attempts to make a reservation
     maximum_attempts = 5
+
+    # A counter to track how many attempts have been made at making a reservation
     attempt_counter = 0
+
     # Tracks whether a reservation has been made
     reservation_made = False
 
+    # Wait to make a reservation until it is midnight
     while not reservation_made and attempt_counter < maximum_attempts:
 
         # Get current time
         current_time = datetime.datetime.now().time()
 
         # Check if current time is midnight
-        if current_time.hour == 13 and current_time.minute == 52:
+        if current_time.hour == 14 and current_time.minute == 37:
             
             # Attempt to make a reservation
             reservation_made = make_reservation()
@@ -199,7 +255,7 @@ def main():
             # Increment the attempt counter
             attempt_counter += 1 
 
-            # Continue to attempt to make a reservation
+            # Continue to attempt to make a reservation up to five times
             while not reservation_made and attempt_counter < maximum_attempts:
                 # Wait for 1 minute before checking again
                 time.sleep(60)       
