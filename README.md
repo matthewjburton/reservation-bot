@@ -16,10 +16,10 @@ pip install -r requirements.txt
 Modify the options in the .env file to utilize your credentials and preferrences
 
 ```py
-USERNAME=mburton        # Your HPU username
+USERNAME=username       # Your HPU username
 PASSWORD=password       # Your HPU passport
 PHONE=5555555555        # All ten digits
 RESTAURANT=Prime        # Prime, Alo, or Kazoku
 GUESTS=6                # Prime: 1-6, Alo: 1-4, Kazoku: 1-10
-TIME=                   # 16:3 - 20:30
+TIME=17:30              # 16:30 - 20:30
 ```
