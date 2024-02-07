@@ -17,7 +17,7 @@ username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 restaurant = os.getenv("RESTAURANT")
 guests = os.getenv("GUESTS")
-preferred_time = os.getenv("TIME")
+preferred_time_str = os.getenv("TIME")
 
 # Define restaurant URLs
 restaurant_urls = {
@@ -25,10 +25,9 @@ restaurant_urls = {
     'Alo': os.getenv("ALO_RESERVATION_URL"),
     'Kazoku': os.getenv("KAZOKU_RESERVATION_URL"),
 }
+url = restaurant_urls.get(restaurant)
 
 def make_reservation():
-    url = restaurant_urls.get(restaurant)
-    
     if not url:
         print("Restaurant URL not found.")
         return None
@@ -40,6 +39,8 @@ def make_reservation():
         # Open the website URL
         driver.get(url)
 
+
+        # LOGIN
         # Find and fill in the login form
         username_field = driver.find_element(By.ID, "login-username")
         password_field = driver.find_element(By.ID, "login-password")
@@ -49,7 +50,9 @@ def make_reservation():
         password_field.send_keys(password)
         login_button.click()
 
-        # See if the prime image shows up again
+
+        # REDIRECT
+        # See if the Prime image shows up again
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//img[@alt='1924 PRIME']")))
         
         # After logging in
@@ -58,6 +61,8 @@ def make_reservation():
             driver.get(url)
             print ("Redirecting to reservation page.")
 
+
+        # DATE
         # Wait for the reservation form to appear
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "picker-form")))
 
@@ -78,15 +83,19 @@ def make_reservation():
         date_td = driver.find_element(By.XPATH, f"//td[@data-date='{seven_days_ahead_timestamp}']")
         date_td.click()
 
+
+        # GUESTS
         # Wait for the new HTML to be loaded after selecting the date
         WebDriverWait(driver, 10).until(EC.staleness_of(date_td))
 
-       # Find the dropdown element by its ID
+        # Find the dropdown element by its ID
         dropdown = Select(driver.find_element(By.ID,"noOfGuests"))
 
         # Select the option corresponding to the value set in the environment variable
         dropdown.select_by_value(guests)
 
+
+        # FIND TABLE
         # Wait for the progress indicator to disappear
         WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.CLASS_NAME, "progress-indicator")))
 
@@ -95,6 +104,53 @@ def make_reservation():
         driver.execute_script("arguments[0].scrollIntoView(true);", find_table_button)  # Scroll to the button
         find_table_button.click()
 
+        """
+        # TIME
+        # Convert the seven_days_later_utc_start_of_day to a string in the format %Y-%m-%d
+        seven_days_date_string = seven_days_later_utc_start_of_day.strftime("%Y-%m-%d")
+
+        # Construct the preferred time string using the date string and the time from the env file
+        preferred_time_str = f"{seven_days_date_string} {preferred_time_str}"
+
+        # Parse the preferred time string into a datetime object
+        preferred_time = datetime.datetime.strptime(preferred_time_str, "%Y-%m-%d %H:%M")
+
+        # Find all button elements
+        buttons = driver.find_elements(By.XPATH, "//button[@class='timeslot btn btn-primary']")
+
+        # Initialize variables to store the closest button and its difference in time
+        closest_button = None
+        min_time_diff = float('inf')
+
+        # Iterate over each button element
+        for button in buttons:
+            # Extract the time value from the button
+            button_time_str = button.get_attribute("value")
+            button_time = datetime.strptime(button_time_str, "%Y-%m-%d %H:%M")
+            
+            # Extract the available seats from the corresponding paragraph element
+            seats_paragraph = button.find_element(By.XPATH, "./following-sibling::p")
+            available_seats = int(seats_paragraph.text.split()[0])
+            
+            # Check if the button is enabled and has enough available seats
+            if available_seats >= int(guests) and not button.is_enabled():
+                # Calculate the difference in time
+                time_diff = abs(preferred_time - button_time)
+                
+                # Update the closest button if the time difference is smaller
+                if time_diff < min_time_diff:
+                    min_time_diff = time_diff
+                    closest_button = button
+
+        # Click the closest button
+        if closest_button:
+            closest_button.click()
+            print("Clicked the closest button with available seats.")
+        else:
+            print("No suitable button found.")
+        """
+
+        time.sleep(10)
         # Submit the reservation form
         #submit_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Submit')]")  # Adjust the locator as needed
         #submit_button.click()
