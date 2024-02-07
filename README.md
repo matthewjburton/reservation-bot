@@ -13,7 +13,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-Create a .env file to manage the configuration for youre reservation
+Create a .env file to manage the configuration for your reservation
 
 ```py
 USERNAME='username'       # Your HPU username
