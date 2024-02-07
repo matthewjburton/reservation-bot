@@ -17,7 +17,7 @@ username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 restaurant = os.getenv("RESTAURANT")
 guests = os.getenv("GUESTS")
-preferred_time_str = os.getenv("TIME")
+preferred_time = os.getenv("TIME")
 
 # Define restaurant URLs
 restaurant_urls = {
@@ -59,20 +59,30 @@ def make_reservation():
         if driver.current_url == "https://finedining.highpoint.edu/":
             # Navigate to the restaurant URL
             driver.get(url)
-            print ("Redirecting to reservation page.")
+            print ("Login Successful.")
+
+
+        # GUESTS
+        # Find the dropdown element by its ID
+        dropdown = Select(driver.find_element(By.ID,"noOfGuests"))
+
+        # Select the option corresponding to the value set in the environment variable
+        dropdown.select_by_value(guests)
 
 
         # DATE
         # Wait for the reservation form to appear
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "picker-form")))
 
-        print ("Login successful.")
-
         # Get current UTC date
         current_date_utc = datetime.datetime.now(pytz.utc).date()
 
+        #print(current_date_utc)
+
         # Add 7 days to the current UTC date
-        seven_days_later_utc = current_date_utc + datetime.timedelta(days=6)
+        seven_days_later_utc = current_date_utc + datetime.timedelta(days=7)
+
+        #print(seven_days_later_utc)
 
         # Combine the date with the start of the day
         seven_days_later_utc_start_of_day = datetime.datetime.combine(seven_days_later_utc, datetime.time.min, tzinfo=pytz.utc)
@@ -80,19 +90,10 @@ def make_reservation():
         # Convert to Unix timestamp in milliseconds
         seven_days_ahead_timestamp = int(seven_days_later_utc_start_of_day.timestamp() * 1000)
 
+        #print(seven_days_ahead_timestamp)
+
         date_td = driver.find_element(By.XPATH, f"//td[@data-date='{seven_days_ahead_timestamp}']")
         date_td.click()
-
-
-        # GUESTS
-        # Wait for the new HTML to be loaded after selecting the date
-        WebDriverWait(driver, 10).until(EC.staleness_of(date_td))
-
-        # Find the dropdown element by its ID
-        dropdown = Select(driver.find_element(By.ID,"noOfGuests"))
-
-        # Select the option corresponding to the value set in the environment variable
-        dropdown.select_by_value(guests)
 
 
         # FIND TABLE
@@ -104,51 +105,47 @@ def make_reservation():
         driver.execute_script("arguments[0].scrollIntoView(true);", find_table_button)  # Scroll to the button
         find_table_button.click()
 
-        """
+        
         # TIME
-        # Convert the seven_days_later_utc_start_of_day to a string in the format %Y-%m-%d
-        seven_days_date_string = seven_days_later_utc_start_of_day.strftime("%Y-%m-%d")
+        # Combine the date and time into the desired format
+        combined_datetime_str = f"{seven_days_later_utc.strftime('%Y-%m-%d')} {preferred_time}"
 
-        # Construct the preferred time string using the date string and the time from the env file
-        preferred_time_str = f"{seven_days_date_string} {preferred_time_str}"
-
-        # Parse the preferred time string into a datetime object
-        preferred_time = datetime.datetime.strptime(preferred_time_str, "%Y-%m-%d %H:%M")
+        # Parse the combined datetime string into a datetime object     
+        combined_datetime = datetime.datetime.strptime(combined_datetime_str, "%Y-%m-%d %H:%M")
 
         # Find all button elements
         buttons = driver.find_elements(By.XPATH, "//button[@class='timeslot btn btn-primary']")
 
         # Initialize variables to store the closest button and its difference in time
         closest_button = None
-        min_time_diff = float('inf')
+        min_time_diff = datetime.timedelta(seconds=999999999)
 
         # Iterate over each button element
         for button in buttons:
             # Extract the time value from the button
             button_time_str = button.get_attribute("value")
-            button_time = datetime.strptime(button_time_str, "%Y-%m-%d %H:%M")
+            button_time = datetime.datetime.strptime(button_time_str, "%Y-%m-%d %H:%M")
             
             # Extract the available seats from the corresponding paragraph element
             seats_paragraph = button.find_element(By.XPATH, "./following-sibling::p")
             available_seats = int(seats_paragraph.text.split()[0])
             
             # Check if the button is enabled and has enough available seats
-            if available_seats >= int(guests) and not button.is_enabled():
+            if available_seats >= int(guests) and button.is_enabled():
                 # Calculate the difference in time
-                time_diff = abs(preferred_time - button_time)
+                time_diff = abs(combined_datetime - button_time)
                 
                 # Update the closest button if the time difference is smaller
-                if time_diff < min_time_diff:
+                if time_diff.total_seconds() < min_time_diff.total_seconds():
                     min_time_diff = time_diff
                     closest_button = button
 
         # Click the closest button
         if closest_button:
             closest_button.click()
-            print("Clicked the closest button with available seats.")
         else:
-            print("No suitable button found.")
-        """
+            print("No suitable time found.")
+        
 
         time.sleep(10)
         # Submit the reservation form
