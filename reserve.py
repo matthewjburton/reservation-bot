@@ -144,11 +144,10 @@ def make_reservation():
         # Click the closest button
         if closest_button:
             closest_button.click()
-            print(closest_button.get_attribute("value"))
         else:
             print("No suitable time found.")
         
-        
+
         # PHONE
         # Find the telephone input field by its ID
         telephone_input = driver.find_element(By.ID, "telephone")
@@ -159,16 +158,14 @@ def make_reservation():
         # Send the phone number to the input field
         telephone_input.send_keys(phone)
         
-        """
+        
         # COMPLETE RESERVATION
         # Find the "Complete Reservation" button by its class name
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
         complete_reservation_button.click()
-
-        time.sleep(10)
-        """
+        
         print("Reservation successful!")
     
     except Exception as e:
