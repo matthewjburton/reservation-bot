@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import time
 import datetime
 import pytz  # Import pytz module for time zone handling
+import schedule
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -164,19 +166,49 @@ def make_reservation():
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
-        complete_reservation_button.click()
+        #complete_reservation_button.click()
         
         print("Reservation successful!")
-    
+        return True
+
     except Exception as e:
         print(f"Error occurred: {e}")
+        return False
     
-    #finally:
+    finally:
         # Close the browser window
         driver.quit()
 
 def main():
-    make_reservation()
+    maximum_attempts = 5
+    attempt_counter = 0
+    # Tracks whether a reservation has been made
+    reservation_made = False
+
+    while not reservation_made and attempt_counter < maximum_attempts:
+
+        # Get current time
+        current_time = datetime.datetime.now().time()
+
+        # Check if current time is midnight
+        if current_time.hour == 13 and current_time.minute == 52:
+            
+            # Attempt to make a reservation
+            reservation_made = make_reservation()
+
+            # Increment the attempt counter
+            attempt_counter += 1 
+
+            # Continue to attempt to make a reservation
+            while not reservation_made and attempt_counter < maximum_attempts:
+                # Wait for 1 minute before checking again
+                time.sleep(60)       
+
+                # Try to make another reservation
+                reservation_made = make_reservation()  
+
+                # Increment the attempt counter
+                attempt_counter += 1     
 
 if __name__ == "__main__":
     main()
