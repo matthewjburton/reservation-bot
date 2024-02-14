@@ -171,22 +171,17 @@ def make_reservation():
 
         # Get current date
         current_date = datetime.datetime.now().date()
-        print(current_date)
 
         # Add 7 days to the current date
         seven_days_later = current_date + datetime.timedelta(days=7)
-        print(seven_days_later)
 
         # Combine the date with the start of the day
         seven_days_later_start_of_day = datetime.datetime.combine(seven_days_later, datetime.time.min, tzinfo=pytz.utc)
-        print(seven_days_later_start_of_day)
 
         seven_days_later_utc_start_of_day = seven_days_later_start_of_day.astimezone(pytz.utc)
-        print(seven_days_later_utc_start_of_day)
 
         # Convert to Unix timestamp in milliseconds
         seven_days_ahead_timestamp = int(seven_days_later_utc_start_of_day.timestamp() * 1000)
-        print(seven_days_ahead_timestamp)
 
         date_td = driver.find_element(By.XPATH, f"//td[@data-date='{seven_days_ahead_timestamp}']")
         date_td.click()
