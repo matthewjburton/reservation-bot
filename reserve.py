@@ -254,7 +254,7 @@ def make_reservation():
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
-        #complete_reservation_button.click()
+        complete_reservation_button.click()
 
         return True
 
@@ -283,7 +283,7 @@ def main():
         current_time = datetime.datetime.now().time()
 
         # Check if current time is midnight
-        if current_time.hour == 23 and current_time.minute == 17:
+        if current_time.hour == 0 and current_time.minute == 0:
 
             # Attempt to make a reservation
             reservation_made = make_reservation()
