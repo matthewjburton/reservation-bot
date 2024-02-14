@@ -38,6 +38,7 @@ def submit():
     # Close the Tkinter window
     root.destroy()
 
+    """
     # Display the user input
     print("Username:", username)
     print("Password:", password)
@@ -45,6 +46,7 @@ def submit():
     print("Restaurant:", restaurant)
     print("Guests:", guests)
     print("Time:", preferred_time)
+    """
 
 # Create the main window
 root = tk.Tk()
@@ -169,23 +171,24 @@ def make_reservation():
         # Wait for the reservation form to appear
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "picker-form")))
 
-        # Get current UTC date
-        current_date_utc = datetime.datetime.now(pytz.utc).date()
+        # Get current date
+        current_date = datetime.datetime.now().date()
+        print(current_date)
 
-        print(current_date_utc)
-
-        # Add 7 days to the current UTC date
-        seven_days_later_utc = current_date_utc + datetime.timedelta(days=7)
-
-        print(seven_days_later_utc)
+        # Add 7 days to the current date
+        seven_days_later = current_date + datetime.timedelta(days=7)
+        print(seven_days_later)
 
         # Combine the date with the start of the day
-        seven_days_later_utc_start_of_day = datetime.datetime.combine(seven_days_later_utc, datetime.time.min, tzinfo=pytz.utc)
+        seven_days_later_start_of_day = datetime.datetime.combine(seven_days_later, datetime.time.min, tzinfo=pytz.utc)
+        print(seven_days_later_start_of_day)
+
+        seven_days_later_utc_start_of_day = seven_days_later_start_of_day.astimezone(pytz.utc)
+        print(seven_days_later_utc_start_of_day)
 
         # Convert to Unix timestamp in milliseconds
         seven_days_ahead_timestamp = int(seven_days_later_utc_start_of_day.timestamp() * 1000)
-
-        #print(seven_days_ahead_timestamp)
+        print(seven_days_ahead_timestamp)
 
         date_td = driver.find_element(By.XPATH, f"//td[@data-date='{seven_days_ahead_timestamp}']")
         date_td.click()
@@ -203,7 +206,7 @@ def make_reservation():
         
         # TIME
         # Combine the date and time into the desired format
-        combined_datetime_str = f"{seven_days_later_utc.strftime('%Y-%m-%d')} {preferred_time}"
+        combined_datetime_str = f"{seven_days_later.strftime('%Y-%m-%d')} {preferred_time}"
 
         # Parse the combined datetime string into a datetime object     
         combined_datetime = datetime.datetime.strptime(combined_datetime_str, "%Y-%m-%d %H:%M")
