@@ -257,7 +257,7 @@ def make_reservation():
         return True
 
     except Exception as e:
-        messagebox.showerror("Error", f"Error occurred: {e}")
+        print(f"Error occurred: {e}")
         return False
     
     finally:
