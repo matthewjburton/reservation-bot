@@ -3,7 +3,6 @@ import datetime
 import pytz  # Import pytz module for time zone handling
 import tkinter as tk # Import tkinter for input GUI
 from tkinter import ttk # Import ttk for dropdown menus
-from tkinter import messagebox # Import messagebox to display success or failure
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,12 +10,24 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 
+# CONSTANTS
 # Define maximum number of guests for each restaurant
 max_guests = {
     'Prime': 6,
     'Alo': 4,
     'Kazoku': 10
 }
+
+# Define restaurant URLs
+restaurant_urls = {
+    'Prime' : 'https://finedining.highpoint.edu/1924-Prime/reservation',
+    'Alo' : 'https://finedining.highpoint.edu/alo/reservation',
+    'Kazoku' : 'https://finedining.highpoint.edu/kazoku/reservation',
+}
+
+# Define the available time options
+times = ['4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', '8:30']
+
 
 # LOAD INPUT
 def submit():
@@ -35,12 +46,12 @@ def submit():
         hour += 12
     preferred_time = "{:02d}:{:02d}".format(hour, minute)
 
-    # Close the Tkinter window
+    # Hide the Tkinter window
     root.destroy()
 
 # Create the main window
 root = tk.Tk()
-root.title("Reservation System")
+root.title("Reservation Bot")
 
 # Username
 username_label = tk.Label(root, text="HPU Username:", font=("Helvetica", 12))
@@ -89,9 +100,6 @@ restaurant_combobox.current(0)  # Set default restaurant
 update_guests_options(None)  # Update guest options based on default restaurant
 
 # Time
-# Define the available time options
-times = ['4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', '8:30']
-
 # Preferred Time
 time_label = tk.Label(root, text="Preferred Time:", font=("Helvetica", 12))
 time_label.grid(row=5, column=0, sticky="w", padx=10, pady=5)
@@ -109,17 +117,11 @@ submit_button.grid(row=6, column=0, columnspan=3, pady=10)
 root.mainloop()
 
 
-# URL
-# Define restaurant URLs
-restaurant_urls = {
-    'Prime' : 'https://finedining.highpoint.edu/1924-Prime/reservation',
-    'Alo' : 'https://finedining.highpoint.edu/alo/reservation',
-    'Kazoku' : 'https://finedining.highpoint.edu/kazoku/reservation',
-}
-url = restaurant_urls.get(restaurant)
-
-
+# RESERVATION
 def make_reservation():
+    # URL
+    url = restaurant_urls.get(restaurant)
+
     # Create a new instance of the Chrome driver
     driver = webdriver.Chrome()
 
@@ -232,7 +234,7 @@ def make_reservation():
         if closest_button:
             closest_button.click()
         else:
-            messagebox.showerror("Reservation failed", "No available time found.")
+            print("Reservation failed, no seats available.")
             return False
         
 
@@ -252,7 +254,7 @@ def make_reservation():
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
-        complete_reservation_button.click()
+        #complete_reservation_button.click()
 
         return True
 
@@ -281,7 +283,7 @@ def main():
         current_time = datetime.datetime.now().time()
 
         # Check if current time is midnight
-        if current_time.hour == 0 and current_time.minute == 0:
+        if current_time.hour == 23 and current_time.minute == 17:
 
             # Attempt to make a reservation
             reservation_made = make_reservation()
@@ -302,10 +304,10 @@ def main():
     
     if reservation_made:
         # Show success message box
-        messagebox.showinfo("Success", "Reservation successful!")
+        print("Reservation successful!")
     else:
         # Show failure message box
-        messagebox.showerror("Failed", "A reservation could not be made.")
+        print("Could not make a reservation.")
 
 if __name__ == "__main__":
     main()
