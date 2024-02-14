@@ -302,8 +302,7 @@ def main():
     
     if reservation_made:
         # Show success message box
-        reservation_details = f"Reservation successful!"
-        messagebox.showinfo("Success", reservation_details)
+        messagebox.showinfo("Success", "Reservation successful!")
     else:
         # Show failure message box
         messagebox.showerror("Failed", "A reservation could not be made.")
