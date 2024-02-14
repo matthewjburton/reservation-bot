@@ -300,7 +300,19 @@ def main():
                 reservation_made = make_reservation()  
 
                 # Increment the attempt counter
-                attempt_counter += 1   
+                attempt_counter += 1 
+
+        # check every minute between 23:50 and midnight
+        elif current_time.hour == 23 and current_time.minute >=  50:
+            time.sleep(60)
+
+        # check every ten minutes between 23:00 and 23:50
+        elif current_time.hour == 23:
+            time.sleep(600)
+        
+        # check every hour between 00:00 and 23:00
+        else:
+            time.sleep(3600)
     
     if reservation_made:
         # Show success message box
