@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.options import Options
 
 # CONSTANTS
 # Define maximum number of guests for each restaurant
@@ -119,11 +120,16 @@ root.mainloop()
 
 # RESERVATION
 def make_reservation():
-    # URL
+
+    # Create Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+
+    # get the restaurant url
     url = restaurant_urls.get(restaurant)
 
-    # Create a new instance of the Chrome driver
-    driver = webdriver.Chrome()
+    # Create a new instance of the Chrome driver with headless mode enabled
+    driver = webdriver.Chrome(options=chrome_options)
 
     try:
         # Open the website URL
