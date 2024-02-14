@@ -63,7 +63,7 @@ pip --version
 If you see a version number you can proceed to installing the dependencies. However, if pip is not installed you will need to download it by running the following command:
 
 ```bash
-wget https://bootstrap.pypa.io/get-pip.py
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 ```
 
 Run the file you just downloaded by running:  

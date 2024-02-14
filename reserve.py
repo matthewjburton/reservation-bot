@@ -33,8 +33,10 @@ def submit():
     hour, minute = map(int, preferred_time.split(":"))
     if hour != 12:
         hour += 12
-    # Create a datetime object with the military time values
-    preferred_time = datetime.datetime.now().replace(hour=hour, minute=minute, second=0, microsecond=0)
+    preferred_time = "{:02d}:{:02d}".format(hour, minute)
+
+    # Close the Tkinter window
+    root.destroy()
 
     # Display the user input
     print("Username:", username)
@@ -114,6 +116,7 @@ submit_button.grid(row=6, column=0, columnspan=3, pady=10)
 # Start the GUI event loop
 root.mainloop()
 
+
 # URL
 # Define restaurant URLs
 restaurant_urls = {
@@ -169,12 +172,12 @@ def make_reservation():
         # Get current UTC date
         current_date_utc = datetime.datetime.now(pytz.utc).date()
 
-        #print(current_date_utc)
+        print(current_date_utc)
 
         # Add 7 days to the current UTC date
         seven_days_later_utc = current_date_utc + datetime.timedelta(days=7)
 
-        #print(seven_days_later_utc)
+        print(seven_days_later_utc)
 
         # Combine the date with the start of the day
         seven_days_later_utc_start_of_day = datetime.datetime.combine(seven_days_later_utc, datetime.time.min, tzinfo=pytz.utc)
@@ -235,7 +238,6 @@ def make_reservation():
         # Click the closest button
         if closest_button:
             closest_button.click()
-            preferred_time = closest_button.get_attribute("value")
         else:
             messagebox.showerror("Reservation failed", "No available time found.")
             return False
@@ -257,7 +259,7 @@ def make_reservation():
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
-        complete_reservation_button.click()
+        #complete_reservation_button.click()
 
         return True
 
@@ -286,8 +288,8 @@ def main():
         current_time = datetime.datetime.now().time()
 
         # Check if current time is midnight
-        if current_time.hour == 0 and current_time.minute == 0:
-            
+        #if current_time.hour == 0 and current_time.minute == 0:
+        if True:    
             # Attempt to make a reservation
             reservation_made = make_reservation()
 
@@ -307,7 +309,7 @@ def main():
     
     if reservation_made:
         # Show success message box
-        reservation_details = f"Reservation successful!\nTime: {preferred_time}"
+        reservation_details = f"Reservation successful!"
         messagebox.showinfo("Success", reservation_details)
     else:
         # Show failure message box
