@@ -38,16 +38,6 @@ def submit():
     # Close the Tkinter window
     root.destroy()
 
-    """
-    # Display the user input
-    print("Username:", username)
-    print("Password:", password)
-    print("Phone:", phone)
-    print("Restaurant:", restaurant)
-    print("Guests:", guests)
-    print("Time:", preferred_time)
-    """
-
 # Create the main window
 root = tk.Tk()
 root.title("Reservation System")
@@ -262,7 +252,7 @@ def make_reservation():
         complete_reservation_button = driver.find_element(By.CLASS_NAME, "btn.btn-primary.btn-block.btn-lg")
 
         # Click the "Complete Reservation" button
-        #complete_reservation_button.click()
+        complete_reservation_button.click()
 
         return True
 
@@ -291,8 +281,8 @@ def main():
         current_time = datetime.datetime.now().time()
 
         # Check if current time is midnight
-        #if current_time.hour == 0 and current_time.minute == 0:
-        if True:    
+        if current_time.hour == 0 and current_time.minute == 0:
+
             # Attempt to make a reservation
             reservation_made = make_reservation()
 
