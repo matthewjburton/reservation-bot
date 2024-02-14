@@ -1,48 +1,15 @@
-import os
-from dotenv import load_dotenv
 import time
 import datetime
 import pytz  # Import pytz module for time zone handling
-import sys
+import tkinter as tk # Import tkinter for input GUI
+from tkinter import ttk # Import ttk for dropdown menus
+from tkinter import messagebox # Import messagebox to display success or failure
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
-
-# LOAD INPUT
-# Load environment variables from .env file
-load_dotenv()
-
-# Access environment variables
-username = os.getenv("USERNAME")
-password = os.getenv("PASSWORD")
-phone = os.getenv("PHONE")
-restaurant = os.getenv("RESTAURANT")
-guests = os.getenv("GUESTS")
-preferred_time = os.getenv("TIME")
-
-
-# INPUT VALIDATION
-# Phone
-# Truncate the phone number if it's longer than 10 characters
-if len(phone) > 10:
-    phone = phone[:10]
-
-# Restaurant
-# Stop the program if the restaurant is not in the list of avaiable restaurants
-if restaurant not in ('Prime', 'Alo', 'Kazoku'):
-    print("Restaurant not found.")
-    # Terminate the program
-    sys.exit()
-
-# Guests
-# Stop the program if the number of guests is less than 1
-if int(guests) < 1:
-    print("Can't make a reservation for less than one guest.")
-    # Terminate the program
-    sys.exit()
 
 # Define maximum number of guests for each restaurant
 max_guests = {
@@ -51,27 +18,101 @@ max_guests = {
     'Kazoku': 10
 }
 
-# Clamp the number of guests
-guests = min(int(guests), max_guests.get(restaurant))
-guests = str(guests)
+# LOAD INPUT
+def submit():
+    # Retrieve user input from the entry widgets
+    global username, password, phone, restaurant, guests, preferred_time  # Define these as global variables
+    username = username_entry.get()
+    password = password_entry.get()
+    phone = phone_entry.get()
+    restaurant = restaurant_combobox.get()
+    guests = guests_combobox.get()
+    preferred_time = time_combobox.get()
+
+    # Convert time to military time
+    hour, minute = map(int, preferred_time.split(":"))
+    if hour != 12:
+        hour += 12
+    # Create a datetime object with the military time values
+    preferred_time = datetime.datetime.now().replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    # Display the user input
+    print("Username:", username)
+    print("Password:", password)
+    print("Phone:", phone)
+    print("Restaurant:", restaurant)
+    print("Guests:", guests)
+    print("Time:", preferred_time)
+
+# Create the main window
+root = tk.Tk()
+root.title("Reservation System")
+
+# Username
+username_label = tk.Label(root, text="HPU Username:", font=("Helvetica", 12))
+username_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
+username_entry = tk.Entry(root, font=("Helvetica", 12))
+username_entry.grid(row=0, column=1, padx=10, pady=5)
+
+# Password
+password_label = tk.Label(root, text="HPU Password:", font=("Helvetica", 12))
+password_label.grid(row=1, column=0, sticky="w", padx=10, pady=5)
+password_entry = tk.Entry(root, show="*", font=("Helvetica", 12))
+password_entry.grid(row=1, column=1, padx=10, pady=5)
+
+# Phone
+phone_label = tk.Label(root, text="Phone:", font=("Helvetica", 12))
+phone_label.grid(row=2, column=0, sticky="w", padx=10, pady=5)
+phone_entry = tk.Entry(root, font=("Helvetica", 12))
+phone_entry.grid(row=2, column=1, padx=10, pady=5)
+
+# Restaurant
+restaurant_label = tk.Label(root, text="Restaurant:", font=("Helvetica", 12))
+restaurant_label.grid(row=3, column=0, sticky="w", padx=10, pady=5)
+restaurant_combobox = ttk.Combobox(root, values=["Prime", "Alo", "Kazoku"], font=("Helvetica", 12), width=10)
+restaurant_combobox.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
+restaurant_combobox.current(0)  # Set the default value
+
+# Guests
+# Function to update the available guest options based on the selected restaurant
+def update_guests_options(event):
+    restaurant = restaurant_combobox.get()
+    max_guest = max_guests.get(restaurant, 6)  # Default to 6 if the restaurant is not found
+    guests_combobox.config(values=list(range(1, max_guest+1)))
+    guests_combobox.current(max_guest - 1)  # Set default choice to the maximum number of guests
+
+# Create a Combobox for selecting the number of guests
+guests_label = tk.Label(root, text="Guests:", font=("Helvetica", 12))
+guests_label.grid(row=4, column=0, sticky="w", padx=10, pady=5)
+guests_combobox = ttk.Combobox(root, font=("Helvetica", 12), state="readonly", width=18)
+guests_combobox.grid(row=4, column=1, padx=10, pady=5)
+
+# Set up the event binding
+restaurant_combobox.bind("<<ComboboxSelected>>", update_guests_options)
+
+# Set default restaurant and update the available guest options
+restaurant_combobox.current(0)  # Set default restaurant
+update_guests_options(None)  # Update guest options based on default restaurant
 
 # Time
-# Define the minimum and maximum times as datetime objects
-min_time = datetime.datetime.strptime("16:30", "%H:%M")
-max_time = datetime.datetime.strptime("20:30", "%H:%M")
+# Define the available time options
+times = ['4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', '8:30']
 
-# Convert the preferred_time to a datetime object
-preferred_time_dt = datetime.datetime.strptime(preferred_time, "%H:%M")
+# Preferred Time
+time_label = tk.Label(root, text="Preferred Time:", font=("Helvetica", 12))
+time_label.grid(row=5, column=0, sticky="w", padx=10, pady=5)
 
-# Check if the preferred time falls within the available range
-if preferred_time_dt < min_time:
-    preferred_time_dt = min_time
-if preferred_time_dt > max_time:
-    preferred_time_dt = max_time
+# Create a Combobox for selecting the preferred time
+time_combobox = ttk.Combobox(root, values=times, font=("Helvetica", 12), state="readonly", width=18)
+time_combobox.grid(row=5, column=1, padx=10, pady=5)
+time_combobox.current(2)  # Set the default value
 
-# Convert the preferred_time back to string format
-preferred_time = preferred_time_dt.strftime("%H:%M")
+# Submit button
+submit_button = tk.Button(root, text="Submit", command=submit, font=("Helvetica", 12), padx=20, pady=10)
+submit_button.grid(row=6, column=0, columnspan=3, pady=10)
 
+# Start the GUI event loop
+root.mainloop()
 
 # URL
 # Define restaurant URLs
@@ -111,7 +152,6 @@ def make_reservation():
         if driver.current_url == "https://finedining.highpoint.edu/":
             # Navigate to the restaurant URL
             driver.get(url)
-            print ("Login Successful.")
 
 
         # GUESTS
@@ -195,10 +235,10 @@ def make_reservation():
         # Click the closest button
         if closest_button:
             closest_button.click()
+            preferred_time = closest_button.get_attribute("value")
         else:
-            print("No suitable time found.")
-            # Terminate the program
-            sys.exit()
+            messagebox.showerror("Reservation failed", "No available time found.")
+            return False
         
 
         # PHONE
@@ -218,12 +258,11 @@ def make_reservation():
 
         # Click the "Complete Reservation" button
         complete_reservation_button.click()
-        
-        print("Reservation successful!")
+
         return True
 
     except Exception as e:
-        print(f"Error occurred: {e}")
+        messagebox.showerror("Error", f"Error occurred: {e}")
         return False
     
     finally:
@@ -264,7 +303,15 @@ def main():
                 reservation_made = make_reservation()  
 
                 # Increment the attempt counter
-                attempt_counter += 1     
+                attempt_counter += 1   
+    
+    if reservation_made:
+        # Show success message box
+        reservation_details = f"Reservation successful!\nTime: {preferred_time}"
+        messagebox.showinfo("Success", reservation_details)
+    else:
+        # Show failure message box
+        messagebox.showerror("Failed", "A reservation could not be made.")
 
 if __name__ == "__main__":
     main()
